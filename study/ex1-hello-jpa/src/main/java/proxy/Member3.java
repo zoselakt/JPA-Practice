@@ -1,10 +1,12 @@
-package hellojpa;
+package proxy;
+
+import hellojpa.BaseEntity;
+import hellojpa.Team;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 
 @Entity
-public class Member extends BaseEntity{
+public class Member3 extends BaseEntity {
     @Id @GeneratedValue
     @Column(name = "MEMBER_ID")
     private Long id;
@@ -15,7 +17,7 @@ public class Member extends BaseEntity{
     //@Column(name = "TEAM_ID")
     //private Long teamId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY) //LAZY: 지연로딩 설정 (기본이 즉시로딩)
     @JoinColumn(name = "TEAM_ID")
     private Team team;
 
