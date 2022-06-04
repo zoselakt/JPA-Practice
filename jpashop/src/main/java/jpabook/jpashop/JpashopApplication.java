@@ -1,13 +1,22 @@
 package jpabook.jpashop;
 
+import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 public class JpashopApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(JpashopApplication.class, args);
+	public static void main(String[] args) { SpringApplication.run(JpashopApplication.class, args);}
+
+		//엔티티를 노출하지마라! / 보통은 하이버네이트객체로 만들어 사용하지 않는다.
+		@Bean
+		Hibernate5Module hibernate5Module(){
+			Hibernate5Module hibernate5Module = new Hibernate5Module();
+			//강제 지연 로딩 설정
+//			hibernate5Module.configure(Hibernate5Module.Feature.FORCE_LAZY_LOADING,true);
+			return hibernate5Module;
 	}
 	//엔티티 클래스 개발
 	//예제에서는 설명을 쉽게하기 위해 엔티티 클래스에 Getter, Setter를 모두 열고, 최대한 단순하게 설계
