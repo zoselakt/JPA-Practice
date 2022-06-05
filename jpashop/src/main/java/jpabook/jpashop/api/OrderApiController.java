@@ -6,6 +6,8 @@ import jpabook.jpashop.domain.OrderItem;
 import jpabook.jpashop.domain.OrderStatus;
 import jpabook.jpashop.repository.OrderRepository;
 import jpabook.jpashop.repository.OrderSearch;
+import jpabook.jpashop.repository.order.query.OrderFlatDto;
+import jpabook.jpashop.repository.order.query.OrderItemQueryDto;
 import jpabook.jpashop.repository.order.query.OrderQueryDto;
 import jpabook.jpashop.repository.order.query.OrderQueryRepository;
 import lombok.Data;
@@ -18,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -92,6 +94,25 @@ public List<OrderQueryDto> ordersV4() {
     return orderQueryRepository.findOrderQueryDtos();
 }
 
+
+//주문 조회 V5: JPA에서 DTO 직접 조회 - 컬렉션 조회 최적화
+@GetMapping("/api/v5/orders")
+public List<OrderQueryDto> ordersV5() {
+    return orderQueryRepository.findAllByDto_optimization();
+}
+
+//주문 조회 V6: JPA에서 DTO로 직접 조회, 플랫 데이터 최적화
+@GetMapping("/api/v6/orders")
+public List<OrderQueryDto> ordersV6() {
+    List<OrderFlatDto> flats = orderQueryRepository.findAllByDto_flat();
+
+    return flats.stream()
+            .collect(groupingBy(o -> new OrderQueryDto(o.getOrderId(), o.getName(), o.getOrderDate(), o.getOrderStatus(), o.getAddress()),
+                    mapping(o -> new OrderItemQueryDto(o.getOrderId(), o.getItemName(), o.getOrderPrice(), o.getCount()), toList())
+            )).entrySet().stream()
+            .map(e -> new OrderQueryDto(e.getKey().getOrderId(), e.getKey().getName(), e.getKey().getOrderDate(), e.getKey().getOrderStatus(), e.getKey().getAddress(), e.getValue()))
+            .collect(toList());
+    }
 /*
 private Long orderId;
     private String name;
@@ -123,3 +144,18 @@ static class OrderItemDto {
     }
 */
 }
+
+//정리
+//엔티티 조회
+//엔티티를 조회해서 그대로 반환: V1
+//엔티티 조회 후 DTO로 변환: V2
+//페치 조인으로 쿼리 수 최적화: V3
+//컬렉션 페이징과 한계 돌파: V3.1
+// 컬렉션은 페치 조인시 페이징이 불가능
+// ToOne 관계는 페치 조인으로 쿼리 수 최적화
+// 컬렉션은 페치 조인 대신에 지연 로딩을 유지하고, hibernate.default_batch_fetch_size ,@BatchSize 로 최적화
+
+//DTO 직접 조회
+// JPA에서 DTO를 직접 조회: V4
+// 컬렉션 조회 최적화 - 일대다 관계인 컬렉션은 IN 절을 활용해서 메모리에 미리 조회해서 최적화: V5
+// 플랫 데이터 최적화 - JOIN 결과를 그대로 조회 후 애플리케이션에서 원하는 모양으로 직접 변환: V6
