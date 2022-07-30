@@ -5,7 +5,7 @@ import lombok.Setter;
 
 import javax.persistence.Embeddable;
 
-@Embeddable //어딘가에 저장될수 있다.
+@Embeddable // 값 타입을 정의하는 곳에 표시
 @Getter
 public class Address {
     private String city;
